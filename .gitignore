@@ -216,3 +216,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ==========================================
+# Cyber Security Thesis Framework Specifics
+# ==========================================
+
+# LocalStack runtime state and container data
+.localstack/
+data/localstack/
+
+# Caldera runtime state, build assets, and dynamically generated payload binaries
+plugins/sandcat/payloads/
+plugins/stockpile/payloads/
+/caldera/data/
+
+# Local testing artifacts and raw SIEM/Auditd log exports
+*.csv
+*.json
+!docs/test_matrix.csv
