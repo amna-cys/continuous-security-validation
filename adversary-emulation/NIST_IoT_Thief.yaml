@@ -1,0 +1,58 @@
+id: d9b8ffab-cb4c-4811-b4fc-df459505297f
+name: NIST_IoT_Thief
+description: Validates NIST PR.AC-01 and PR.DS-10
+objective: 495a9828-cab1-44dd-a0ca-66e58177d8cc
+atomic_ordering:
+- 0668def8f7c53352ae0d3a83b2b6a804
+- 076ce07e755915250b7d1af352c75aa0
+- 7784d702d69cb5219ff8fa6177b3ad81
+- 2c79f238a874947ce287bd7f83e0fb9b
+abilities:
+ 0668def8f7c53352ae0d3a83b2b6a804:
+  name:  Identifying Network Shares - Linux
+  tactic:  discovery
+  technique_name:  "File and Directory Discovery"
+  technique_id:  T1083
+  executors: 
+   - sh:
+     platform: linux
+     command: |
+       findmnt -t nfs
+ 076ce07e755915250b7d1af352c75aa0:
+  name:  Copy Private SSH Keys with CP
+  tactic:  credential-access
+  technique_name:  "Unsecured Credentials: Private Keys"
+  technique_id:  T1552.004
+  executors: 
+   - sh:
+     platform: linux
+     command: |
+       mkdir -p ~/.ssh && touch ~/.ssh/id_rsa && echo "mock_key_data" > ~/.ssh/id_rsa && cp ~/.ssh/id_rsa /tmp/id_rsa_staged
+ 7784d702d69cb5219ff8fa6177b3ad81:
+  name:  Search Through Bash History
+  tactic:  credential-access
+  technique_name:  "Unsecured Credentials: Bash History"
+  technique_id:  T1552.003
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       touch ~/.bash_history && echo "ls -la && sudo systemctl status wazuh-agent && cat /etc/passwd" >> ~/.bash_history && cat ~/.bash_history
+   - sh:
+     platform: linux
+     command: |
+       touch ~/.bash_history && echo "ls -la && sudo systemctl status wazuh-agent && cat /etc/passwd" >> ~/.bash_history && cat ~/.bash_history
+ 2c79f238a874947ce287bd7f83e0fb9b:
+  name:  Encrypts collected data with AES-256 and Base64
+  tactic:  collection
+  technique_name:  "Archive Collected Data: Archive via Utility"
+  technique_id:  T1560.001
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       zip -r  /tmp/t1560/t1560_data.zip /tmp/t1560; openssl enc -aes-256-cbc -pass pass:atomic_enc_pass -p -in /tmp/t1560/t1560_data.zip -out /tmp/t1560/t1560_data.enc ; cat /tmp/t1560/t1560_data.enc | base64
+   - sh:
+     platform: linux
+     command: |
+       zip -r  /tmp/t1560/t1560_data.zip /tmp/t1560; openssl enc -aes-256-cbc -pass pass:atomic_enc_pass -p -in /tmp/t1560/t1560_data.zip -out /tmp/t1560/t1560_data.enc ; cat /tmp/t1560/t1560_data.enc | base64

@@ -1,0 +1,77 @@
+id: 00d21902-c671-436a-b8b3-308a56cc6843
+name: NIST_Evasion_Tester
+description: NIST DE.CM-03 (Security Monitoring) 
+objective: 495a9828-cab1-44dd-a0ca-66e58177d8cc
+atomic_ordering:
+- 96735f5b42e62cc245bb3b86a9bf6b64
+- 71f50396925121c72d847fe483f895c6
+- baf1e1af5a9a7fdfe4cfc5d111a25174
+- 2dcea776-efd3-472a-80d9-aa9c42e44a61
+- b0026f9a57639c049490a43d623d7695
+abilities:
+ 96735f5b42e62cc245bb3b86a9bf6b64:
+  name:  Pad Binary to Change Hash - Linux/macOS dd
+  tactic:  stealth
+  technique_name:  "Obfuscated Files or Information: Binary Padding"
+  technique_id:  T1027.001
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       mkdir -p /tmp/evasion-test && touch /tmp/evasion-test/binary.bin && echo "padding" >> /tmp/evasion-test/binary.bin
+   - sh:
+     platform: linux
+     command: |
+       mkdir -p /tmp/evasion-test && touch /tmp/evasion-test/binary.bin && echo "padding" >> /tmp/evasion-test/binary.bin
+ 71f50396925121c72d847fe483f895c6:
+  name:  chmod - Change file or folder mode (numeric mode)
+  tactic:  defense-impairment
+  technique_name:  "File and Directory Permissions Modification: FreeBSD, Linux and Mac File and Directory Permissions Modification"
+  technique_id:  T1222.002
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       chmod 777 #{file.malicious.path}
+   - sh:
+     platform: linux
+     command: |
+       chmod 777 #{file.malicious.path}
+ baf1e1af5a9a7fdfe4cfc5d111a25174:
+  name:  Modify file timestamps using reference file
+  tactic:  stealth
+  technique_name:  "Indicator Removal on Host: Timestomp"
+  technique_id:  T1070.006
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       touch /tmp/T1070.006-reference.txt; touch -acmr /bin/sh /tmp/T1070.006-reference.txt
+   - sh:
+     platform: linux
+     command: |
+       touch /tmp/T1070.006-reference.txt; touch -acmr /bin/sh /tmp/T1070.006-reference.txt
+ 2dcea776-efd3-472a-80d9-aa9c42e44a61:
+  name:  Disable Wazuh Host Defense Service
+  tactic:  defense-evasion
+  technique_name:  "Impair Defenses: Disable or Modify Tools"
+  technique_id:  T1562.001
+  executors: 
+   - sh:
+     platform: linux
+     command: |
+       sudo systemctl stop wazuh-agent
+ b0026f9a57639c049490a43d623d7695:
+  name:  Delete TeamViewer Log Files
+  tactic:  stealth
+  technique_name:  "Indicator Removal on Host: File Deletion"
+  technique_id:  T1070.004
+  executors: 
+   - psh:
+     platform: windows
+     command: |
+       New-Item -Path $env:TEMP\TeamViewer_54.log -Force | Out-Null; Remove-Item $env:TEMP\TeamViewer_54.log -Force -ErrorAction Ignore
+   - sh:
+     platform: linux
+     command: |
+       rm -rf /var/log/teamviewer* 2>/dev/null || echo "Clean"

