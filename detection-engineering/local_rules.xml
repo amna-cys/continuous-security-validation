@@ -1,0 +1,55 @@
+<!-- Local rules -->
+
+<!-- Modify it at your will. -->
+<group name="linux,caldera,nist_csf_2.0,">
+
+  <rule id="100060" level="12">
+    <if_sid>500</if_sid>
+    <match>etc/passwd|etc/shadow|whoami|hostname|cat /etc/</match>
+    <description>NIST CSF 2.0 DE.CM-03: Local Asset and Credential Harvesting Activity Verified</description>
+    <mitre>
+      <id>T1552.003</id>
+      <id>T1082</id>
+    </mitre>
+  </rule>
+
+  <rule id="100063" level="12">
+    <if_sid>500</if_sid>
+    <match>localstack|awslocal|4566|cloud-pivot-workstation|aws s3</match>
+    <description>NIST CSF 2.0 DE.AE-02: Cloud Gateway API Interaction and Lateral Movement</description>
+    <mitre>
+      <id>T1580</id>
+      <id>T1537</id>
+    </mitre>
+  </rule>
+
+  <rule id="100064" level="12">
+    <if_sid>500</if_sid>
+    <match>nmap|ping -c|arp -a|netstat|route -n</match>
+    <description>NIST CSF 2.0 DE.CM-01: Network Pivot and Subnet Reconnaissance Mapping</description>
+    <mitre>
+      <id>T1046</id>
+      <id>T1016</id>
+    </mitre>
+  </rule>
+
+  <rule id="100071" level="12">
+    <if_sid>500</if_sid>
+    <match>rm -rf /var/log|history -c|systemctl stop wazuh|auditd -s stop</match>
+    <description>NIST CSF 2.0 PR.PT-01 / DE.AE-04: Host Defense Evasion and Anti-Forensics Attempt</description>
+    <mitre>
+      <id>T1562.001</id>
+      <id>T1070.006</id>
+    </mitre>
+  </rule>
+
+  <rule id="100072" level="13">
+    <if_sid>500</if_sid>
+    <match>base64 --decode|base64 -d|echo.*\|.*base64</match>
+    <description>NIST CSF 2.0 PR.PT-01: Advanced Obfuscated Command Execution Detected</description>
+    <mitre>
+      <id>T1027</id>
+    </mitre>
+  </rule>
+
+</group>
